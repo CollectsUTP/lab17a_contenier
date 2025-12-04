@@ -1,42 +1,27 @@
-name: CI-CD - Build Docker, Push to GHCR & Deploy Render
+name: CI - Build & Push to GHCR
 
 on:
   push:
-    branches: ["master"]  # Se ejecuta en cada push a main
+    branches: [ "master" ] # O main si ese es tu branch
 
 jobs:
-  build-push-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     permissions:
       contents: read
-      packages: write  # IMPORTANTE para subir imagen a GHCR
+      packages: write
 
     steps:
-
-      # 1) Descargar repositorio
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
-
-      # 2) Login al Registry de GitHub (GHCR)
-      - name: Login to GHCR
+        
+      # 🔥 AQUÍ YA NO HAY "" VACÍO — USA TU SECRET
+      - name: Login to GitHub Container Registry
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      # 3) Construir imagen Docker
+      
       - name: Build Docker image
-        run: docker build -t ghcr.io/${{ github.repository }}/app:latest .
+        run: docker build -t ghcr.io/${{ github.repository_owner }}/lab17a:latest .
 
-      # 4) Push de image a GHCR
-      - name: Push Docker image to GHCR
-        run: docker push ghcr.io/${{ github.repository }}/app:latest
-
-      # 5) Trigger despliegue automático en Render
-      - name: Deploy to Render from Image
-        run: |
-          curl -X POST -sS \
-          -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-          -H "Content-Type: application/json" \
-          -d '{
-                "imagePath": "ghcr.io/${{ github.repository }}/app:latest"
-              }' \
-           https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys
+      - name: Push Image to GHCR
+        run: docker push ghcr.io/${{ github.repository_owner }}/lab17a:latest
