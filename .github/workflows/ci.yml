@@ -1,11 +1,11 @@
-name: CI - Build & Push to GHCR
+name: CI - Build & Push docker to GHCR
 
 on:
   push:
-    branches: [ "master" ] # O main si ese es tu branch
+    branches: ["master"]
 
 jobs:
-  deploy:
+  build-and-push:
     runs-on: ubuntu-latest
 
     permissions:
@@ -15,13 +15,12 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-        
-      # 🔥 AQUÍ YA NO HAY "" VACÍO — USA TU SECRET
+
       - name: Login to GitHub Container Registry
         run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      
+
       - name: Build Docker image
         run: docker build -t ghcr.io/${{ github.repository_owner }}/lab17a:latest .
 
-      - name: Push Image to GHCR
+      - name: Push image
         run: docker push ghcr.io/${{ github.repository_owner }}/lab17a:latest
